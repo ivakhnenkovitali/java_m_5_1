@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: service-gateway
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_URL}

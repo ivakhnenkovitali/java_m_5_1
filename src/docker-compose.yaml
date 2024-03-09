@@ -1,0 +1,74 @@
+version: "3.8"
+services:
+  message-broker:
+    image: rabbitmq:3.12.10
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+  service-discovery:
+    build: service-discovery
+    ports:
+      - "8761:8761"
+    restart: always
+  localstack:
+    image: localstack/localstack:3.0.2
+    ports:
+      - "4566:4566"
+    restart: always
+  service-gateway:
+    build: service-gateway
+    ports:
+      - "7080:8080"
+    environment:
+      - EUREKA_CLIENT_URL=${SERVICE_DISCOVERY_URL}
+    restart: always
+  service-alpha:
+    build: service-alpha
+    ports:
+      - "5555:5555"
+    environment:
+      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5555"
+      - EUREKA_CLIENT_URL=${SERVICE_DISCOVERY_URL}
+    restart: always
+    depends_on:
+      - service-discovery
+      - service-bravo
+      - localstack
+      - message-broker
+  service-bravo:
+    build: service-bravo
+    expose:
+      - "8080"
+    environment:
+      - DATABASE_PASSWORD=${SERVICE_BRAVO_DATABASE_PASSWORD}
+      - DATABASE_URL=jdbc:postgresql://service-bravo-database:5432/${SERVICE_BRAVO_DATABASE_NAME}
+      - DATABASE_USER=${SERVICE_BRAVO_DATABASE_USER}
+      - EUREKA_CLIENT_URL=${SERVICE_DISCOVERY_URL}
+    deploy:
+      mode: replicated
+      replicas: 3
+    restart: always
+    depends_on:
+      - service-discovery
+      - service-bravo-database
+  service-bravo-database:
+    image: postgres:16.1-bullseye
+    ports:
+      - "7432:5432"
+    volumes:
+      - service-bravo-database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${SERVICE_BRAVO_DATABASE_PASSWORD}
+      - POSTGRES_DB=${SERVICE_BRAVO_DATABASE_NAME}
+      - POSTGRES_USER=${SERVICE_BRAVO_DATABASE_USER}
+    restart: always
+  service-charlie:
+    build: service-charlie
+    expose:
+      - "8080"
+    restart: always
+    depends_on:
+      - message-broker
+volumes:
+  service-bravo-database:

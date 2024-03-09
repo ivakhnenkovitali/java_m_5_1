@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.6'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.hrm'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+bootJar {
+    archiveFileName = "app.jar"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    /* Messaging */
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+    /* Dev */
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    compileOnly 'org.projectlombok:lombok'
+    /* Annotation processors */
+    annotationProcessor 'org.projectlombok:lombok'
+    /* Test */
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

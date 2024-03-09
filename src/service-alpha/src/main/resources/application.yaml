@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: service-alpha
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_URL}
+resilience4j:
+  circuitbreaker:
+    instances:
+      MyCircuitBreaker:
+        failure-rate-threshold: 50
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 10
+        sliding-window-type: count_based
+  retry:
+    instances:
+      MyRetry:
+        max-attempts: 3
+        wait-duration: 1s
+  bulkhead:
+    instances:
+      MyBulkhead:
+        max-concurrent-calls: 5
+  ratelimiter:
+    instances:
+      MyRateLimiter:
+        limit-for-period: 5
+        limit-refresh-period: 30s
+my:
+  client:
+    bravo:
+      id: SERVICE-GATEWAY
+      endpoint: bravo/ping
+    s3:
+      url: http://localstack:4566 # Need this only because of the localhost
+      accessKey: fake_access_key  # Any value is accepted by the S3Client and by the localstack
+      secretKey: fake_secret_key  # Any value is accepted by the S3Client and by the localstack
+      bucket: com.hrm.my.bucket.1 # Should be unique across all AWS S3 Buckets globally (locally for localstack)
+      region: us-west-1           # Any value is accepted by the S3Client and by the localstack
